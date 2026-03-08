@@ -49,16 +49,35 @@
                 </div>
             </div>
             <div class="flex items-center gap-3 text-sm bg-slate-800/50 p-3 rounded-xl border border-white/10">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
+                <span class="text-green-400 font-bold text-xs uppercase tracking-wider">Live Data</span>
+                <span class="text-white/30">|</span>
                 <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
-                <span id="last-updated">Last Updated: --</span>
+                <span id="last-updated">Fetching...</span>
             </div>
         </div>
     </header>
 
-    <!-- Data Story Banner -->
+    <!-- Data Story Banner + Global Year Filter -->
     <div class="navy-bg border-b border-blue-900/40 px-6 py-5">
-        <div class="max-w-7xl mx-auto">
-            <p id="data-story" class="text-blue-100 text-sm md:text-base leading-relaxed text-center">
+        <div class="max-w-7xl mx-auto space-y-3">
+            <!-- Global Filter Bar -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="flex items-center gap-2 bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block"></span>
+                    Live from ArcGIS
+                </span>
+                <div class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-xl px-3 py-1.5">
+                    <i data-lucide="filter" class="w-3.5 h-3.5 text-blue-300"></i>
+                    <span class="text-blue-200 text-xs font-bold uppercase tracking-wider">Viewing:</span>
+                    <select id="year-filter" onchange="applyGlobalFilter()" class="text-sm font-bold bg-transparent text-white focus:outline-none cursor-pointer">
+                        <option value="all">All Years</option>
+                    </select>
+                </div>
+                <span id="filter-badge" class="text-xs text-blue-300/70 italic">All dashboard stats reflect selected period</span>
+            </div>
+            <!-- Data Story -->
+            <p id="data-story" class="text-blue-100 text-sm md:text-base leading-relaxed">
                 Loading Montgomery public safety intelligence...
             </p>
         </div>
@@ -67,8 +86,8 @@
     <!-- Main Content -->
     <main class="flex-grow p-6 max-w-7xl mx-auto w-full space-y-8">
 
-        <!-- Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Stat Cards Row 1 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
                 <div class="p-4 bg-blue-50 rounded-xl"><i data-lucide="phone-call" class="w-8 h-8 text-blue-600"></i></div>
                 <div>
@@ -90,11 +109,32 @@
                     <h3 id="stat-month" class="text-2xl font-bold text-slate-900">--</h3>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
-                <div class="p-4 bg-red-50 rounded-xl"><i data-lucide="clock" class="w-8 h-8 text-red-600"></i></div>
+        </div>
+
+        <!-- Stat Cards Row 2 — Response Times by Category -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100 flex items-center gap-5">
+                <div class="p-4 bg-red-50 rounded-xl">🔥</div>
                 <div>
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Avg Response</p>
-                    <h3 id="stat-response" class="text-2xl font-bold text-slate-900">--</h3>
+                    <p class="text-xs font-bold text-red-400 uppercase tracking-widest">Fire Response</p>
+                    <h3 id="stat-response-fire" class="text-2xl font-bold text-slate-900">--</h3>
+                    <p id="sub-response-fire" class="text-xs text-slate-400 mt-0.5">avg fire crew arrival · all time</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex items-center gap-5">
+                <div class="p-4 bg-blue-50 rounded-xl">🚑</div>
+                <div>
+                    <p class="text-xs font-bold text-blue-400 uppercase tracking-widest">Medical Response</p>
+                    <h3 id="stat-response-medical" class="text-2xl font-bold text-slate-900">--</h3>
+                    <p id="sub-response-medical" class="text-xs text-slate-400 mt-0.5">avg medical crew arrival · all time</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-orange-100 flex items-center gap-5">
+                <div class="p-4 bg-orange-50 rounded-xl">🚨</div>
+                <div>
+                    <p class="text-xs font-bold text-orange-400 uppercase tracking-widest">Other Incidents</p>
+                    <h3 id="stat-response-other" class="text-2xl font-bold text-slate-900">--</h3>
+                    <p id="sub-response-other" class="text-xs text-slate-400 mt-0.5">avg crew arrival · all time</p>
                 </div>
             </div>
         </div>
@@ -112,11 +152,13 @@
         <!-- Charts Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-bold mb-6 text-slate-900">2025 Monthly Call Volume</h2>
+                <h2 class="text-xl font-bold mb-1 text-slate-900">Monthly Call Volume</h2>
+                <p id="bar-chart-sub" class="text-xs text-slate-400 mb-5">Showing all available data</p>
                 <div class="h-[350px]"><canvas id="barChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-bold mb-6 text-slate-900">Provider Distribution</h2>
+                <h2 class="text-xl font-bold mb-1 text-slate-900">Provider Distribution</h2>
+                <p id="pie-chart-sub" class="text-xs text-slate-400 mb-5">Showing all available data</p>
                 <div class="h-[350px]"><canvas id="pieChart"></canvas></div>
             </div>
         </div>
@@ -125,12 +167,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold mb-1 text-slate-900">Response Time by District</h2>
-                <p class="text-xs text-slate-400 mb-6">🟢 fastest → 🔴 slowest (hover for minutes:seconds)</p>
+                <p id="district-chart-sub" class="text-xs text-slate-400 mb-6">🟢 fastest → 🔴 slowest · all time · (hover for minutes:seconds)</p>
                 <div class="h-[450px]"><canvas id="districtChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold mb-1 text-slate-900">Response Time by Incident Type</h2>
-                <p class="text-xs text-slate-400 mb-4">Average seconds from dispatch to on-scene arrival</p>
+                <p id="category-chart-sub" class="text-xs text-slate-400 mb-4">Average seconds from dispatch to on-scene arrival · all time</p>
                 <!-- Other Incidents Legend Box -->
                 <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-xs text-orange-800">
                     <p class="font-bold mb-1">🟠 What are "Other Incidents"?</p>
@@ -242,16 +284,18 @@
 
     <script>
         const API_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/911_Calls_Data/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=2000";
-        const INCIDENT_API_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Rescue_All_Incidents/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=1000";
+        const INCIDENT_API_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Rescue_All_Incidents/FeatureServer/0/query?where=1%3D1&outFields=Incident_Number,Incident_Type,Unit_Response_Time,District,Incident_Type_Code,Days_in_PSAP_Received_DateTime&returnGeometry=false&f=json&resultRecordCount=32000";
+        // Separate URL for map markers (geometry needed, smaller result set)
+        const INCIDENT_MAP_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Rescue_All_Incidents/FeatureServer/0/query?where=1%3D1&outFields=Incident_Number,Incident_Type,District,Days_in_PSAP_Received_DateTime&returnGeometry=true&f=geojson&resultRecordCount=2000";
         const FIRE_STATIONS_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Station_Locations/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=100";
         const SHELTERS_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Tornado_Shelter/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=100";
         const THREE_ONE_ONE_URL = "https://mgmgis.montgomeryal.gov/arcgis/rest/services/HostedDatasets/Received_311_Service_Request/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=500";
 
         // Replace with your Gemini API key from https://aistudio.google.com/app/apikey
-        const GEMINI_KEY = "PASTE YOUR API KEY HERE";
+        const GEMINI_KEY = "AIzaSyAXRRG1LSmxbqWUR4_zuqhrgyJNU6Ki8_U";
 
         let summaryData = {};
-        let allIncidents = [], fireStations = [], tornadoShelters = [], threeOneOneIssues = [];
+        let allIncidents = [], allMapIncidents = [], fireStations = [], tornadoShelters = [], threeOneOneIssues = [];
         let map;
         let layers = {
             incidents: L.layerGroup(), stations: L.layerGroup(),
@@ -276,15 +320,47 @@
 
         async function init() {
             try {
-                const [callsRes, incRes, stationsRes, sheltersRes, issuesRes] = await Promise.all([
-                    fetch(API_URL), fetch(INCIDENT_API_URL), fetch(FIRE_STATIONS_URL), fetch(SHELTERS_URL), fetch(THREE_ONE_ONE_URL)
+                const [callsRes, incRes, incMapRes, stationsRes, sheltersRes, issuesRes] = await Promise.all([
+                    fetch(API_URL), fetch(INCIDENT_API_URL), fetch(INCIDENT_MAP_URL), fetch(FIRE_STATIONS_URL), fetch(SHELTERS_URL), fetch(THREE_ONE_ONE_URL)
                 ]);
-                const [callsData, incData, stationsData, sheltersData, issuesData] = await Promise.all([
-                    callsRes.json(), incRes.json(), stationsRes.json(), sheltersRes.json(), issuesRes.json()
+                const [callsData, incData, incMapData, stationsData, sheltersData, issuesData] = await Promise.all([
+                    callsRes.json(), incRes.json(), incMapRes.json(), stationsRes.json(), sheltersRes.json(), issuesRes.json()
                 ]);
 
                 const features = callsData.features;
-                allIncidents = incData.features || [];
+                // Stats dataset: JSON format uses attributes — normalise to properties
+                allIncidents = (incData.features || []).map(f => {
+                    if (f.attributes && !f.properties) f.properties = f.attributes;
+                    const p = f.properties;
+                    // Extract year from Incident_Number e.g. "2025-00031601" — most reliable
+                    if (p.Incident_Number && String(p.Incident_Number).match(/^\d{4}-/)) {
+                        p._year = parseInt(String(p.Incident_Number).substring(0, 4));
+                    } else {
+                        // Fallback: Days_in_PSAP_Received_DateTime is epoch ms
+                        const ms = p.Days_in_PSAP_Received_DateTime;
+                        if (ms && !isNaN(Number(ms)) && Number(ms) > 1000000000) {
+                            p._year = new Date(Number(ms)).getFullYear();
+                        }
+                    }
+                    return f;
+                });
+                // allMapIncidents = geometry dataset for map markers only
+                allMapIncidents = (incMapData.features || []).map(f => {
+                    const p = f.properties;
+                    if (p && p.Incident_Number && String(p.Incident_Number).match(/^\d{4}-/)) {
+                        p._year = parseInt(String(p.Incident_Number).substring(0, 4));
+                    }
+                    return f;
+                });
+
+                const yearCounts = {};
+                allIncidents.forEach(f => {
+                    const y = f.properties._year || 'unknown';
+                    yearCounts[y] = (yearCounts[y] || 0) + 1;
+                });
+                console.log('📅 Incident years in stats dataset:', yearCounts);
+                console.log(`🗺️ Map incidents fetched: ${allMapIncidents.length}`);
+
                 fireStations = stationsData.features || [];
                 tornadoShelters = sheltersData.features || [];
                 threeOneOneIssues = issuesData.features || [];
@@ -329,14 +405,46 @@
                     if (avg > maxAvg) { maxAvg = avg; slowestDist = d; }
                 });
 
+                // Populate response time stat cards (all time — from fire/rescue dataset)
+                const fireAvg = catStats.Fire.count    > 0 ? catStats.Fire.total    / catStats.Fire.count    : 0;
+                const medAvg  = catStats.Medical.count > 0 ? catStats.Medical.total / catStats.Medical.count : 0;
+                const othAvg  = catStats.Other.count   > 0 ? catStats.Other.total   / catStats.Other.count   : 0;
+                // Response cards populated by applyGlobalFilter()
+
                 const topProvider = Object.keys(providers).reduce((a,b) => providers[a]>providers[b]?a:b);
                 const topPct = Math.round((providers[topProvider]/total)*100);
+
+                // Build district call counts from 911 data
+                const districtCounts = {};
+                features.forEach(f => {
+                    const a = f.attributes;
+                    const dist = a.District || a.district || a.DISTRICT || 'Unknown';
+                    const count = a.Call_Count_By_Origin || 1;
+                    if (!districtCounts[dist]) districtCounts[dist] = { total: 0, emergency: 0, nonEmergency: 0 };
+                    districtCounts[dist].total += count;
+                    if (a.Call_Type === 'Emergency' || a.Call_Type_Group === 'Emergency') districtCounts[dist].emergency += count;
+                    else districtCounts[dist].nonEmergency += count;
+                });
+                // Also build from fire/rescue incidents for response by district
+                const districtIncidentCounts = {};
+                allIncidents.forEach(f => {
+                    const p = f.properties || f.attributes || f;
+                    const dist = p.District || 'Unknown';
+                    if (!districtIncidentCounts[dist]) districtIncidentCounts[dist] = { fire: 0, medical: 0, other: 0, total: 0 };
+                    const type = (p.Incident_Type || '').toLowerCase();
+                    if (type.includes('fire')) districtIncidentCounts[dist].fire++;
+                    else if (type.includes('medical') || type.includes('ems')) districtIncidentCounts[dist].medical++;
+                    else districtIncidentCounts[dist].other++;
+                    districtIncidentCounts[dist].total++;
+                });
 
                 summaryData = {
                     totalCalls: total, emergencyCalls: emergency,
                     emergencyPercentage: ((emergency/total)*100).toFixed(1)+'%',
                     busiestMonth, providerBreakdown: providers, topProvider, topPct,
                     monthlyTrends: monthlyBreakdown,
+                    districtCallCounts: districtCounts,
+                    districtIncidentCounts: districtIncidentCounts,
                     responseTimes: {
                         avgResponseTimeSeconds: Math.round(avgResp),
                         fastestDistrict: fastestDist, fastestSeconds: Math.round(minAvg),
@@ -354,24 +462,23 @@
                     }
                 };
 
-                // Update UI
-                document.getElementById('stat-total').innerText = total.toLocaleString();
-                document.getElementById('stat-percent').innerText = summaryData.emergencyPercentage;
-                document.getElementById('stat-month').innerText = busiestMonth;
-                document.getElementById('stat-response').innerText = avgResp > 0 ? fmtTime(avgResp) : 'N/A';
-                document.getElementById('last-updated').innerText = 'Last Updated: ' + new Date().toLocaleDateString();
+                document.getElementById('last-updated').innerText = 'Updated: ' + new Date().toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
 
-                // Data story
-                const fasterPct = minAvg > 0 ? Math.round(((avgResp - minAvg) / avgResp) * 100) : 0;
-                document.getElementById('data-story').innerHTML =
-                    `Montgomery receives <strong>${total.toLocaleString()} calls annually</strong> — ${summaryData.emergencyPercentage} are true emergencies requiring immediate response. 
-                     Average fire crew response time is <strong>${fmtTime(avgResp)}</strong>, but District ${fastestDist} responds ${fasterPct}% faster than average. 
-                     <strong>${busiestMonth}</strong> is the peak month · ${topProvider} phones account for the majority of 911 calls.`;
+                // Pass busiestMonth derived same way as applyGlobalFilter (all-years basis for insights)
+                const allMonthTotals = new Array(12).fill(0);
+                features.forEach(f => {
+                    const a = f.attributes, count = a.Call_Count_By_Origin || 0;
+                    const idx = extractMonthIndex(a.Month);
+                    if (idx !== -1) allMonthTotals[idx] += count;
+                });
+                let insightsBusiestIdx = 0;
+                allMonthTotals.forEach((v,i) => { if (v > allMonthTotals[insightsBusiestIdx]) insightsBusiestIdx = i; });
+                const insightsBusiestMonth = MONTH_NAMES[insightsBusiestIdx];
 
-                renderInsights(total, emergency, avgResp, minAvg, fastestDist, busiestMonth, topProvider, topPct, catStats);
                 renderCharts(features, providers);
-                renderDistrictChart(districtStats);
-                renderCategoryChart(catStats);
                 initMap();
 
                 document.getElementById('loader').style.display = 'none';
@@ -387,22 +494,27 @@
         }
 
         function renderInsights(total, emergency, avgResp, minAvg, fastestDist, busiestMonth, topProvider, topPct, catStats) {
-            const fasterPct = minAvg > 0 ? Math.round(((avgResp - minAvg) / avgResp) * 100) : 0;
-            const emergPct = ((emergency/total)*100).toFixed(1);
+            const emergPct = total > 0 ? ((emergency/total)*100).toFixed(1) : '0';
+            const hasIncidentData = fastestDist !== 'N/A' && minAvg !== Infinity && avgResp > 0;
+            const fasterPct = hasIncidentData ? Math.round(((avgResp - minAvg) / avgResp) * 100) : 0;
             const fireAvg = catStats.Fire.count>0 ? catStats.Fire.total/catStats.Fire.count : 0;
             const medAvg = catStats.Medical.count>0 ? catStats.Medical.total/catStats.Medical.count : 0;
-            const fasterCat = fireAvg > 0 && medAvg > 0 ? (fireAvg < medAvg ? 'Fire' : 'Medical') : 'Fire';
-            const fasterCatTime = Math.min(fireAvg||999, medAvg||999);
+            const fasterCat = fireAvg > 0 && medAvg > 0 ? (fireAvg < medAvg ? 'Fire' : 'Medical') : null;
+            const fasterCatTime = fasterCat ? Math.min(fireAvg, medAvg) : 0;
 
             const insights = [
                 { icon:'⚡', color:'bg-blue-50 border-blue-200', title:'Fastest District',
-                  text:`District ${fastestDist} responds ${fasterPct}% faster than the city average of ${fmtTime(avgResp)}.` },
+                  text: hasIncidentData
+                    ? `District ${fastestDist} responds ${fasterPct}% faster than the city average of ${fmtTime(avgResp)}.`
+                    : `Incident data not yet published for the selected year.` },
                 { icon:'🚨', color:'bg-red-50 border-red-200', title:'Emergency Rate',
-                  text:`${emergPct}% of all calls are true emergencies — nearly 1 in 2 calls requires immediate response.` },
+                  text:`${emergPct}% of all 911 calls are true emergencies — nearly 1 in 2 calls requires immediate response.` },
                 { icon:'📅', color:'bg-amber-50 border-amber-200', title:'Peak Month',
-                  text:`${busiestMonth} is Montgomery's busiest month. Expect higher demand on emergency services.` },
+                  text:`${busiestMonth} is the busiest month for this period. Expect higher demand on emergency services.` },
                 { icon:'🚒', color:'bg-emerald-50 border-emerald-200', title:'Fastest Incident Type',
-                  text:`${fasterCat} incidents get the fastest response at ${fmtTime(fasterCatTime)} on average city-wide.` }
+                  text: fasterCat
+                    ? `${fasterCat} incidents get the fastest response at ${fmtTime(fasterCatTime)} on average city-wide.`
+                    : `Incident data not yet published for the selected year.` }
             ];
 
             document.getElementById('insights-strip').innerHTML = insights.map(i => `
@@ -413,42 +525,276 @@
                 </div>`).join('');
         }
 
-        function renderCharts(features, providers) {
-            const f2025 = features.filter(f => f.attributes.Year === 2025);
-            const eMap = {}, nMap = {};
-            f2025.forEach(f => {
-                const a = f.attributes, count = a.Call_Count_By_Origin || 0;
-                if (a.Call_Category === 'Emergency') eMap[a.Month] = (eMap[a.Month]||0) + count;
-                else nMap[a.Month] = (nMap[a.Month]||0) + count;
-            });
-            const keys = Array.from(new Set([...Object.keys(eMap),...Object.keys(nMap)])).sort();
-            new Chart(document.getElementById('barChart'), {
-                type:'bar',
-                data:{ labels: keys.map(k=>k.split(' - ')[1]||k),
-                    datasets:[
-                        {label:'Emergency', data:keys.map(k=>eMap[k]||0), backgroundColor:'#3b82f6', borderRadius:4},
-                        {label:'Non-Emergency', data:keys.map(k=>nMap[k]||0), backgroundColor:'#ef4444', borderRadius:4}
-                    ]},
-                options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-            });
-            new Chart(document.getElementById('pieChart'), {
-                type:'pie',
-                data:{labels:Object.keys(providers),datasets:[{data:Object.values(providers),backgroundColor:['#1e293b','#3b82f6','#10b981','#f59e0b','#64748b']}]},
-                options:{responsive:true,maintainAspectRatio:false}
-            });
+        let allFeatures = [];
+        let allRawProviders = {}; // store raw per-feature provider data for filtering
+        let barChartInstance = null;
+        let pieChartInstance = null;
+
+        const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const MONTH_ABBR   = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function extractMonthIndex(rawMonth) {
+            if (!rawMonth) return -1;
+            const str = String(rawMonth).toLowerCase();
+            for (let i = 0; i < MONTH_NAMES.length; i++) {
+                if (str.includes(MONTH_NAMES[i].toLowerCase())) return i;
+            }
+            const numMatch = str.match(/\b(1[0-2]|0?[1-9])\b/);
+            if (numMatch) return parseInt(numMatch[1]) - 1;
+            return -1;
         }
 
+        function applyGlobalFilter() {
+            const selectedYear = document.getElementById('year-filter').value;
+            const filtered = selectedYear === 'all'
+                ? allFeatures
+                : allFeatures.filter(f => String(f.attributes.Year) === selectedYear);
+
+            const label = selectedYear === 'all' ? 'All Years' : selectedYear;
+            document.getElementById('filter-badge').innerText = `All stats reflect: ${label}`;
+
+            // --- Recalculate 911 stat cards ---
+            let total = 0, emergency = 0;
+            const providers = {}, eMap = new Array(12).fill(0), nMap = new Array(12).fill(0);
+
+            filtered.forEach(f => {
+                const a = f.attributes;
+                const count = a.Call_Count_By_Origin || 0;
+                total += count;
+                if (a.Call_Category === 'Emergency') emergency += count;
+                const provKey = a.Phone_Service_Provider_Type || a.Provider_Type || 'Unknown';
+                providers[provKey] = (providers[provKey]||0) + count;
+                const monthIdx = extractMonthIndex(a.Month);
+                if (monthIdx !== -1) {
+                    if (a.Call_Category === 'Emergency') eMap[monthIdx] += count;
+                    else nMap[monthIdx] += count;
+                }
+            });
+
+            // Busiest month
+            let busiestIdx = 0, busiestTotal = 0;
+            for (let i = 0; i < 12; i++) {
+                if (eMap[i] + nMap[i] > busiestTotal) { busiestTotal = eMap[i] + nMap[i]; busiestIdx = i; }
+            }
+
+            // Update stat cards
+            document.getElementById('stat-total').innerText = total.toLocaleString();
+            document.getElementById('stat-percent').innerText = total > 0 ? ((emergency/total)*100).toFixed(1)+'%' : '--';
+            if (busiestTotal > 0) document.getElementById('stat-month').innerText = MONTH_NAMES[busiestIdx];
+
+            // --- Filter incidents by year and recalculate response times ---
+            const filteredIncidents = selectedYear === 'all'
+                ? allIncidents
+                : allIncidents.filter(f => f.properties._year === parseInt(selectedYear));
+
+            const catStats = { Fire: {total:0,count:0}, Medical: {total:0,count:0}, Other: {total:0,count:0} };
+            const districtStats = {};
+
+            filteredIncidents.forEach(f => {
+                const p = f.properties, rt = p.Unit_Response_Time;
+                if (rt == null || isNaN(rt)) return;
+                const typeLow = (p.Incident_Type || '').toLowerCase();
+                const cat = typeLow.includes('fire') ? 'Fire' : (typeLow.includes('medical')||typeLow.includes('ems') ? 'Medical' : 'Other');
+                catStats[cat].total += rt; catStats[cat].count++;
+                if (p.District) {
+                    if (!districtStats[p.District]) districtStats[p.District] = {total:0,count:0};
+                    districtStats[p.District].total += rt;
+                    districtStats[p.District].count++;
+                }
+            });
+
+            // Update response time stat cards
+            const fireAvg = catStats.Fire.count    > 0 ? catStats.Fire.total    / catStats.Fire.count    : 0;
+            const medAvg  = catStats.Medical.count > 0 ? catStats.Medical.total / catStats.Medical.count : 0;
+            const othAvg  = catStats.Other.count   > 0 ? catStats.Other.total   / catStats.Other.count   : 0;
+            const noIncidentData = filteredIncidents.length === 0;
+            const noDataLabel = noIncidentData ? 'Not published yet' : 'N/A';
+            document.getElementById('stat-response-fire').innerText    = fireAvg > 0 ? fmtTime(fireAvg) : noDataLabel;
+            document.getElementById('stat-response-medical').innerText = medAvg  > 0 ? fmtTime(medAvg)  : noDataLabel;
+            document.getElementById('stat-response-other').innerText   = othAvg  > 0 ? fmtTime(othAvg)  : noDataLabel;
+            // Update subtitle text on response cards to clarify
+            const periodLabel = selectedYear === 'all' ? 'all time' : selectedYear;
+
+            // Update response card subtitles
+            const subFire = document.getElementById('sub-response-fire');
+            const subMed  = document.getElementById('sub-response-medical');
+            const subOth  = document.getElementById('sub-response-other');
+            const noDataMsg = noIncidentData ? `Incident data not yet published for ${periodLabel}` : null;
+            if (subFire) subFire.innerText = noDataMsg || `avg fire crew arrival · ${periodLabel}`;
+            if (subMed)  subMed.innerText  = noDataMsg || `avg medical crew arrival · ${periodLabel}`;
+            if (subOth)  subOth.innerText  = noDataMsg || `avg crew arrival · ${periodLabel}`;
+
+            // Update chart subtitles
+            const distSub = document.getElementById('district-chart-sub');
+            const catSub  = document.getElementById('category-chart-sub');
+            if (distSub) distSub.innerText = noIncidentData
+                ? `Incident data not yet published for ${periodLabel}`
+                : `fastest → slowest · ${periodLabel} · (hover for minutes:seconds)`;
+            if (catSub) catSub.innerText = noIncidentData
+                ? `Incident data not yet published for ${periodLabel}`
+                : `Average seconds from dispatch to on-scene arrival · ${periodLabel}`;
+
+            // Update district and category charts
+            renderDistrictChart(districtStats);
+            renderCategoryChart(catStats);
+
+            // Update AI Insights strip with filtered data
+            let minAvgFiltered = Infinity, maxAvgFiltered = -Infinity, fastestDistFiltered = "N/A", slowestDistFiltered = "N/A";
+            Object.keys(districtStats).forEach(d => {
+                const avg = districtStats[d].total / districtStats[d].count;
+                if (avg < minAvgFiltered) { minAvgFiltered = avg; fastestDistFiltered = d; }
+                if (avg > maxAvgFiltered) { maxAvgFiltered = avg; slowestDistFiltered = d; }
+            });
+            const avgRespFiltered = filteredIncidents.reduce((s,f) => {
+                const rt = f.properties.Unit_Response_Time;
+                return (rt != null && !isNaN(rt)) ? s + rt : s;
+            }, 0) / Math.max(filteredIncidents.filter(f => f.properties.Unit_Response_Time != null && !isNaN(f.properties.Unit_Response_Time)).length, 1);
+            const topProvFiltered = Object.keys(providers).length > 0 ? Object.keys(providers).reduce((a,b) => providers[a]>providers[b]?a:b) : 'Unknown';
+            // Update summaryData so chatbot reflects current filter
+            const filteredDistrictCounts = {};
+            filtered.forEach(f => {
+                const a = f.attributes;
+                const dist = a.District || a.district || a.DISTRICT || 'Unknown';
+                const count = a.Call_Count_By_Origin || 1;
+                if (!filteredDistrictCounts[dist]) filteredDistrictCounts[dist] = { total: 0, emergency: 0, nonEmergency: 0 };
+                filteredDistrictCounts[dist].total += count;
+                if (a.Call_Category === 'Emergency') filteredDistrictCounts[dist].emergency += count;
+                else filteredDistrictCounts[dist].nonEmergency += count;
+            });
+            const filteredDistrictIncidents = {};
+            filteredIncidents.forEach(f => {
+                const p = f.properties || f.attributes || f;
+                const dist = p.District || 'Unknown';
+                if (!filteredDistrictIncidents[dist]) filteredDistrictIncidents[dist] = { fire: 0, medical: 0, other: 0, total: 0 };
+                const type = (p.Incident_Type || '').toLowerCase();
+                if (type.includes('fire')) filteredDistrictIncidents[dist].fire++;
+                else if (type.includes('medical') || type.includes('ems')) filteredDistrictIncidents[dist].medical++;
+                else filteredDistrictIncidents[dist].other++;
+                filteredDistrictIncidents[dist].total++;
+            });
+            summaryData = Object.assign({}, summaryData, {
+                selectedYear: selectedYear === 'all' ? 'All Years' : selectedYear,
+                totalCalls: total, emergencyCalls: emergency,
+                emergencyPercentage: ((emergency/total)*100).toFixed(1)+'%',
+                busiestMonth: MONTH_NAMES[busiestIdx],
+                districtCallCounts: filteredDistrictCounts,
+                districtIncidentCounts: filteredDistrictIncidents,
+                responseTimes: {
+                    avgResponseTimeSeconds: Math.round(avgRespFiltered),
+                    fastestDistrict: fastestDistFiltered, fastestSeconds: Math.round(minAvgFiltered),
+                    slowestDistrict: slowestDistFiltered, slowestSeconds: Math.round(maxAvgFiltered),
+                    byCategory: {
+                        fire: catStats.Fire.count>0 ? Math.round(catStats.Fire.total/catStats.Fire.count) : null,
+                        medical: catStats.Medical.count>0 ? Math.round(catStats.Medical.total/catStats.Medical.count) : null,
+                        other: catStats.Other.count>0 ? Math.round(catStats.Other.total/catStats.Other.count) : null
+                    }
+                }
+            });
+
+            renderInsights(total, emergency, avgRespFiltered, minAvgFiltered, fastestDistFiltered, MONTH_NAMES[busiestIdx], topProvFiltered, 0, catStats);
+
+            // Update incidents map layer with year filter
+            currentMapFilter = currentMapFilter || 'All';
+            filterMap(currentMapFilter);
+
+            // Update bar chart
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: MONTH_ABBR,
+                    datasets: [
+                        { label: 'Emergency',     data: eMap, backgroundColor: '#3b82f6', borderRadius: 4 },
+                        { label: 'Non-Emergency', data: nMap, backgroundColor: '#ef4444', borderRadius: 4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+
+            // Update provider pie chart
+            if (pieChartInstance) pieChartInstance.destroy();
+            const provLabels = Object.keys(providers);
+            const provData   = Object.values(providers);
+            if (provLabels.length > 0) {
+                pieChartInstance = new Chart(document.getElementById('pieChart'), {
+                    type: 'pie',
+                    data: { labels: provLabels, datasets: [{ data: provData, backgroundColor: ['#1e293b','#3b82f6','#10b981','#f59e0b','#64748b'] }] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            // Update data story banner
+            const emergPct = total > 0 ? ((emergency/total)*100).toFixed(1) : '0';
+            const topProvider = provLabels.length > 0 ? provLabels.reduce((a,b) => providers[a]>providers[b]?a:b) : 'Unknown';
+            // Update chart period notes
+            const barSub = document.getElementById('bar-chart-sub');
+            const pieSub = document.getElementById('pie-chart-sub');
+            if (selectedYear === 'all') {
+                if (barSub) barSub.innerText = 'Aggregated across all years — Jan to Dec combined';
+                if (pieSub) pieSub.innerText = 'Aggregated across all years';
+            } else {
+                const monthsWithData = MONTH_ABBR.filter((_, i) => eMap[i] + nMap[i] > 0);
+                const monthRange = monthsWithData.length > 0
+                    ? `${monthsWithData[0]} – ${monthsWithData[monthsWithData.length-1]} ${selectedYear}`
+                    : `${selectedYear} (no data yet)`;
+                if (barSub) barSub.innerText = `Showing ${monthsWithData.length} month${monthsWithData.length !== 1 ? 's' : ''} of data · ${monthRange}`;
+                if (pieSub) pieSub.innerText = `Provider breakdown for ${selectedYear} · ${total.toLocaleString()} calls`;
+            }
+
+            document.getElementById('data-story').innerHTML =
+                `<strong>Fetched live right now</strong> — ${label} data shows <strong>${total.toLocaleString()} calls recorded</strong>, with ${emergPct}% being true emergencies. 
+                 <strong>${MONTH_NAMES[busiestIdx]}</strong> is the peak demand month · ${topProvider} phones make up the majority of 911 calls.`;
+        }
+
+
+
+        function renderCharts(features, providers) {
+            allFeatures = features;
+
+            // Populate year dropdown from available data
+            const years = [...new Set(features.map(f => f.attributes.Year).filter(Boolean))].sort((a,b) => b-a);
+            const select = document.getElementById('year-filter');
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y; opt.innerText = y;
+                select.appendChild(opt);
+            });
+
+            // Trigger full global filter render (All Years default)
+            applyGlobalFilter();
+        }
+
+        let districtChartInstance = null;
+        let categoryChartInstance = null;
+
         function renderDistrictChart(districtStats) {
-            if (!Object.keys(districtStats).length) return;
+            if (!Object.keys(districtStats).length) {
+                if (districtChartInstance) { districtChartInstance.destroy(); districtChartInstance = null; }
+                document.getElementById('districtChart').style.display = 'none';
+                let msg = document.getElementById('district-no-data');
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = 'district-no-data';
+                    msg.className = 'flex items-center justify-center h-full text-slate-400 text-sm font-medium';
+                    msg.innerText = `Fire department data not yet published for ${document.getElementById('year-filter').value === 'all' ? 'all years' : document.getElementById('year-filter').value}`;
+                    document.getElementById('districtChart').parentElement.appendChild(msg);
+                }
+                msg.style.display = 'flex';
+                return;
+            }
+            document.getElementById('districtChart').style.display = 'block';
+            const msgEl = document.getElementById('district-no-data');
+            if (msgEl) msgEl.style.display = 'none';
             const sorted = Object.keys(districtStats).map(d=>({name:d,avg:districtStats[d].total/districtStats[d].count})).sort((a,b)=>a.avg-b.avg);
             const n = sorted.length;
             const colors = sorted.map((_,i) => {
                 const r = i/(n-1);
                 return `rgb(${Math.floor(16+(239-16)*r)},${Math.floor(185+(68-185)*r)},${Math.floor(129+(68-129)*r)})`;
             });
-            new Chart(document.getElementById('districtChart'), {
+            if (districtChartInstance) districtChartInstance.destroy();
+            districtChartInstance = new Chart(document.getElementById('districtChart'), {
                 type:'bar',
-                data:{labels:sorted.map(d=>'District '+d.name),datasets:[{label:'Avg Response (sec)',data:sorted.map(d=>Math.round(d.avg)),backgroundColor:colors,borderRadius:6}]},
+                data:{labels:sorted.map(d=> String(d.name).toLowerCase().startsWith('district') ? d.name : 'District '+d.name),datasets:[{label:'Avg Response (sec)',data:sorted.map(d=>Math.round(d.avg)),backgroundColor:colors,borderRadius:6}]},
                 options:{
                     indexAxis:'y',responsive:true,maintainAspectRatio:false,
                     plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Math.round(ctx.raw)}s (${fmtTime(ctx.raw)})`}}},
@@ -458,11 +804,30 @@
         }
 
         function renderCategoryChart(catStats) {
+            const hasData = ['Fire','Medical','Other'].some(c => catStats[c].count > 0);
+            if (!hasData) {
+                if (categoryChartInstance) { categoryChartInstance.destroy(); categoryChartInstance = null; }
+                document.getElementById('categoryChart').style.display = 'none';
+                let msg = document.getElementById('category-no-data');
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = 'category-no-data';
+                    msg.className = 'flex items-center justify-center h-full text-slate-400 text-sm font-medium';
+                    msg.innerText = `Fire department data not yet published for ${document.getElementById('year-filter').value === 'all' ? 'all years' : document.getElementById('year-filter').value}`;
+                    document.getElementById('categoryChart').parentElement.appendChild(msg);
+                }
+                msg.style.display = 'flex';
+                return;
+            }
+            document.getElementById('categoryChart').style.display = 'block';
+            const catMsgEl = document.getElementById('category-no-data');
+            if (catMsgEl) catMsgEl.style.display = 'none';
             const cats = ['Fire','Medical','Other'];
             const data = cats.map(c => catStats[c].count>0 ? Math.round(catStats[c].total/catStats[c].count) : 0);
             const counts = cats.map(c => catStats[c].count);
             const colors = ['#ef4444','#3b82f6','#f97316'];
-            new Chart(document.getElementById('categoryChart'), {
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
                 type:'bar',
                 data:{
                     labels:cats.map((c,i)=>`${c}\n(${counts[i]} incidents)`),
@@ -524,9 +889,16 @@
             }
         }
 
+        let currentMapFilter = 'All';
+
         function filterMap(type) {
+            currentMapFilter = type;
             layers.incidents.clearLayers();
-            allIncidents.forEach(i => {
+            const selectedYear = document.getElementById('year-filter') ? document.getElementById('year-filter').value : 'all';
+            const incidentsToShow = selectedYear === 'all'
+                ? allMapIncidents
+                : allMapIncidents.filter(f => f.properties._year === parseInt(selectedYear));
+            incidentsToShow.forEach(i => {
                 const pos = safeCoords(i); if (!pos) return;
                 const p = i.properties;
                 const typeLow = (p.Incident_Type||'').toLowerCase();

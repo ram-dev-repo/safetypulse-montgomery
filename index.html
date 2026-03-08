@@ -4,26 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafetyPulse Montgomery - Public Safety Dashboard</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js for data visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Leaflet.js for Mapping -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .navy-bg { background-color: #0a192f; }
-        .navy-border { border-color: #1e293b; }
         .chat-bubble-user { background-color: #3b82f6; color: white; border-radius: 18px 18px 2px 18px; }
         .chat-bubble-ai { background-color: #1e293b; color: #e2e8f0; border-radius: 18px 18px 18px 2px; border: 1px solid #334155; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         #incident-map { height: 500px; z-index: 0; }
+        .layer-toggle.active { background-color: #3b82f6; color: white; border-color: #2563eb; }
+        .insight-card { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .insight-card:nth-child(1) { animation-delay: 0.1s; }
+        .insight-card:nth-child(2) { animation-delay: 0.2s; }
+        .insight-card:nth-child(3) { animation-delay: 0.3s; }
+        .insight-card:nth-child(4) { animation-delay: 0.4s; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -53,35 +55,61 @@
         </div>
     </header>
 
+    <!-- Data Story Banner -->
+    <div class="navy-bg border-b border-blue-900/40 px-6 py-5">
+        <div class="max-w-7xl mx-auto">
+            <p id="data-story" class="text-blue-100 text-sm md:text-base leading-relaxed text-center">
+                Loading Montgomery public safety intelligence...
+            </p>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="flex-grow p-6 max-w-7xl mx-auto w-full space-y-8">
-        
+
         <!-- Stat Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
                 <div class="p-4 bg-blue-50 rounded-xl"><i data-lucide="phone-call" class="w-8 h-8 text-blue-600"></i></div>
                 <div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Calls</p>
-                    <h3 id="stat-total" class="text-3xl font-bold text-slate-900">--</h3>
+                    <h3 id="stat-total" class="text-2xl font-bold text-slate-900">--</h3>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
                 <div class="p-4 bg-emerald-50 rounded-xl"><i data-lucide="activity" class="w-8 h-8 text-emerald-600"></i></div>
                 <div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Emergency %</p>
-                    <h3 id="stat-percent" class="text-3xl font-bold text-slate-900">--</h3>
+                    <h3 id="stat-percent" class="text-2xl font-bold text-slate-900">--</h3>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
                 <div class="p-4 bg-amber-50 rounded-xl"><i data-lucide="trending-up" class="w-8 h-8 text-amber-600"></i></div>
                 <div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Busiest Month</p>
-                    <h3 id="stat-month" class="text-3xl font-bold text-slate-900">--</h3>
+                    <h3 id="stat-month" class="text-2xl font-bold text-slate-900">--</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-5">
+                <div class="p-4 bg-red-50 rounded-xl"><i data-lucide="clock" class="w-8 h-8 text-red-600"></i></div>
+                <div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Avg Response</p>
+                    <h3 id="stat-response" class="text-2xl font-bold text-slate-900">--</h3>
                 </div>
             </div>
         </div>
 
-        <!-- Charts -->
+        <!-- AI Insights Strip -->
+        <div>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="p-1.5 bg-blue-600 rounded-lg"><i data-lucide="zap" class="w-4 h-4 text-white"></i></div>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest">AI-Generated Insights</h2>
+            </div>
+            <div id="insights-strip" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold mb-6 text-slate-900">2025 Monthly Call Volume</h2>
@@ -90,6 +118,25 @@
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold mb-6 text-slate-900">Provider Distribution</h2>
                 <div class="h-[350px]"><canvas id="pieChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Response Time Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-1 text-slate-900">Response Time by District</h2>
+                <p class="text-xs text-slate-400 mb-6">🟢 fastest → 🔴 slowest (hover for minutes:seconds)</p>
+                <div class="h-[450px]"><canvas id="districtChart"></canvas></div>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-1 text-slate-900">Response Time by Incident Type</h2>
+                <p class="text-xs text-slate-400 mb-4">Average seconds from dispatch to on-scene arrival</p>
+                <!-- Other Incidents Legend Box -->
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-xs text-orange-800">
+                    <p class="font-bold mb-1">🟠 What are "Other Incidents"?</p>
+                    <p>Vehicle accidents · Hazardous materials · Utility emergencies · Water rescues · False alarms · Any non-fire/non-medical call requiring a fire crew response.</p>
+                </div>
+                <div class="h-[320px]"><canvas id="categoryChart"></canvas></div>
             </div>
         </div>
 
@@ -104,27 +151,23 @@
                 </div>
                 <span class="text-xs font-bold px-2 py-1 bg-blue-500/20 text-blue-300 rounded uppercase tracking-wider">Gemini 2.5 Flash</span>
             </div>
-            
             <div class="p-6 space-y-6">
-                <!-- Conversation Area -->
                 <div id="chat-container" class="h-80 overflow-y-auto space-y-4 pr-2 custom-scrollbar flex flex-col">
                     <div class="chat-bubble-ai p-4 max-w-[85%] self-start">
-                        Hello! I'm SafetyPulse AI. I can analyze Montgomery's 911 call data for you. What would you like to know?
+                        Hello! I'm SafetyPulse AI. I can analyze Montgomery's public safety data, response times, and map layers for you. What would you like to know?
                     </div>
                 </div>
-
-                <!-- Example Questions -->
                 <div class="space-y-3">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Quick Queries</p>
                     <div class="flex flex-wrap gap-2">
                         <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which month had the most emergency calls?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What % of calls were Non-Emergency?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What is the most common phone provider?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Is call volume increasing or decreasing?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">How fast does help arrive in Montgomery?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which district has the fastest emergency response?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Should I call 911 or the non-emergency line for a barking dog?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What are the most common types of fire incidents?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Is call volume increasing or decreasing in 2025?</button>
                     </div>
                 </div>
-
-                <!-- Input Area -->
                 <div class="flex gap-3">
                     <input type="text" id="chat-input" placeholder="Type your question about the data..." class="flex-grow px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     <button id="ask-btn" onclick="handleAsk()" class="px-6 py-3 navy-bg text-white font-bold rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2">
@@ -135,306 +178,418 @@
             </div>
         </section>
 
-        <!-- Emergency Incident Map Section -->
+        <!-- Resident Safety Map -->
         <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="navy-bg p-6 text-white flex items-center justify-between">
+            <div class="navy-bg p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-red-500/20 rounded-lg">
                         <i data-lucide="map" class="w-6 h-6 text-red-400"></i>
                     </div>
-                    <h2 class="text-xl font-bold">Emergency Incident Map</h2>
+                    <div>
+                        <h2 class="text-xl font-bold">Resident Safety Map</h2>
+                        <p class="text-xs text-slate-300 font-medium">Toggle layers to explore incidents, fire stations, tornado shelters and 311 community issues across Montgomery</p>
+                    </div>
                 </div>
-                <div id="map-stats" class="hidden md:flex gap-4 text-xs font-bold uppercase tracking-widest">
-                    <span>Fire: <span id="fire-count" class="text-red-400">0</span></span>
-                    <span>Medical: <span id="med-count" class="text-blue-400">0</span></span>
-                    <span>Total: <span id="total-incidents">0</span></span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="toggleLayer('incidents')" id="toggle-incidents" class="layer-toggle active px-3 py-1.5 rounded-lg border border-white/10 text-xs font-bold uppercase transition-all">Incidents</button>
+                    <button onclick="toggleLayer('stations')" id="toggle-stations" class="layer-toggle px-3 py-1.5 rounded-lg border border-white/10 text-xs font-bold uppercase transition-all">Fire Stations</button>
+                    <button onclick="toggleLayer('shelters')" id="toggle-shelters" class="layer-toggle px-3 py-1.5 rounded-lg border border-white/10 text-xs font-bold uppercase transition-all">Shelters</button>
+                    <button onclick="toggleLayer('issues')" id="toggle-issues" class="layer-toggle px-3 py-1.5 rounded-lg border border-white/10 text-xs font-bold uppercase transition-all">311 Issues</button>
                 </div>
             </div>
-            <div class="p-6 space-y-6">
-                <!-- Filter Bar -->
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="filterMap('All')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-900 text-white filter-btn" id="btn-All">All</button>
-                    <button onclick="filterMap('Fire')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Fire">Fire</button>
-                    <button onclick="filterMap('Medical')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Medical">Medical</button>
-                    <button onclick="filterMap('Other')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Other">Other</button>
+            <div class="p-6 space-y-3">
+                <div id="incident-filters" class="flex flex-wrap gap-2">
+                    <button onclick="filterMap('All')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-900 text-white filter-btn" id="btn-All">All Incidents</button>
+                    <button onclick="filterMap('Fire')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Fire">🔴 Fire</button>
+                    <button onclick="filterMap('Medical')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Medical">🔵 Medical</button>
+                    <button onclick="filterMap('Other')" class="px-6 py-2 rounded-full text-sm font-bold border bg-slate-50 text-slate-600 filter-btn" id="btn-Other">🟠 Other Incidents</button>
                 </div>
-                <!-- Map Container -->
+                <p class="text-xs text-slate-400 italic">🟠 Other Incidents include: vehicle accidents, hazmat, utility emergencies, water rescues &amp; false alarms</p>
                 <div id="incident-map" class="rounded-2xl border border-slate-200 shadow-inner"></div>
             </div>
         </section>
+
+        <!-- How to Use -->
+        <section class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white">
+            <h2 class="text-xl font-bold mb-6 text-center">How to Use SafetyPulse Montgomery</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex flex-col items-center text-center gap-3">
+                    <div class="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-xl font-bold">1</div>
+                    <h3 class="font-bold text-blue-300">Explore the Stats</h3>
+                    <p class="text-slate-300 text-sm">View live 911 call volumes, emergency percentages, and AI-generated insights across Montgomery.</p>
+                </div>
+                <div class="flex flex-col items-center text-center gap-3">
+                    <div class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl font-bold">2</div>
+                    <h3 class="font-bold text-emerald-300">Use the Safety Map</h3>
+                    <p class="text-slate-300 text-sm">Toggle layers to find your nearest fire station, tornado shelter, or view 311 community issues in your area.</p>
+                </div>
+                <div class="flex flex-col items-center text-center gap-3">
+                    <div class="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center text-xl font-bold">3</div>
+                    <h3 class="font-bold text-purple-300">Ask the AI</h3>
+                    <p class="text-slate-300 text-sm">Not sure whether to call 911 or the non-emergency line? Ask SafetyPulse AI for instant guidance.</p>
+                </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                <p class="text-slate-400 text-sm">Emergency? Call <span class="text-white font-bold text-base">911</span> immediately &nbsp;·&nbsp; Non-emergency? Call <span class="text-white font-bold text-base">334-625-2651</span></p>
+            </div>
+        </section>
+
     </main>
 
     <footer class="p-8 text-center text-slate-400 text-sm">
-        <p>© 2026 City of Montgomery Public Safety Intelligence. Data provided by ArcGIS Rest Services.</p>
+        <p>© 2026 City of Montgomery Public Safety Intelligence · Data via ArcGIS Rest Services · Built for WWV 2026 Hackathon</p>
     </footer>
 
     <script>
         const API_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/911_Calls_Data/FeatureServer/0/query?where=1%3D1&outFields=*&f=json&resultRecordCount=2000";
         const INCIDENT_API_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Rescue_All_Incidents/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=1000";
-        const MONTH_ORDER = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        // To run locally: replace the key below with your own free Gemini API key
-        // Get one free at: https://aistudio.google.com/app/apikey
-        const GEMINI_KEY = "PASTE_YOUR_GEMINI_KEY_HERE";
-        
+        const FIRE_STATIONS_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Fire_Station_Locations/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=100";
+        const SHELTERS_URL = "https://services7.arcgis.com/xNUwUjOJqYE54USz/ArcGIS/rest/services/Tornado_Shelter/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=100";
+        const THREE_ONE_ONE_URL = "https://mgmgis.montgomeryal.gov/arcgis/rest/services/HostedDatasets/Received_311_Service_Request/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson&resultRecordCount=500";
+
+        // Replace with your Gemini API key from https://aistudio.google.com/app/apikey
+        const GEMINI_KEY = "PASTE YOUR API KEY HERE";
+
         let summaryData = {};
-        let allIncidents = [];
-        let map, markerLayer;
+        let allIncidents = [], fireStations = [], tornadoShelters = [], threeOneOneIssues = [];
+        let map;
+        let layers = {
+            incidents: L.layerGroup(), stations: L.layerGroup(),
+            shelters: L.layerGroup(), issues: L.layerGroup()
+        };
+
+        function safeCoords(feature) {
+            try {
+                if (!feature?.geometry?.coordinates) return null;
+                const coords = feature.geometry.coordinates;
+                const raw = Array.isArray(coords[0]) ? coords[0] : coords;
+                const lng = parseFloat(raw[0]), lat = parseFloat(raw[1]);
+                if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return null;
+                if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+                return [lat, lng];
+            } catch(e) { return null; }
+        }
+
+        function fmtTime(s) {
+            return `${Math.floor(s/60)}m ${Math.round(s%60)}s`;
+        }
 
         async function init() {
             try {
-                const [callsRes, incRes] = await Promise.all([
-                    fetch(API_URL),
-                    fetch(INCIDENT_API_URL)
+                const [callsRes, incRes, stationsRes, sheltersRes, issuesRes] = await Promise.all([
+                    fetch(API_URL), fetch(INCIDENT_API_URL), fetch(FIRE_STATIONS_URL), fetch(SHELTERS_URL), fetch(THREE_ONE_ONE_URL)
+                ]);
+                const [callsData, incData, stationsData, sheltersData, issuesData] = await Promise.all([
+                    callsRes.json(), incRes.json(), stationsRes.json(), sheltersRes.json(), issuesRes.json()
                 ]);
 
-                const callsData = await callsRes.json();
-                const incData = await incRes.json();
                 const features = callsData.features;
+                allIncidents = incData.features || [];
+                fireStations = stationsData.features || [];
+                tornadoShelters = sheltersData.features || [];
+                threeOneOneIssues = issuesData.features || [];
 
-                // Process Stats & Summary for AI
-                let total = 0, emergency = 0, nonEmergency = 0, months = {}, providers = {}, monthlyBreakdown = {};
-                
+                // 911 Stats
+                let total = 0, emergency = 0, months = {}, providers = {}, monthlyBreakdown = {};
                 features.forEach(f => {
-                    const attr = f.attributes;
-                    const count = attr.Call_Count_By_Origin || 0;
-                    const cat = attr.Call_Category;
-                    const month = attr.Month;
-                    const provider = attr.Phone_Service_Provider_Type || 'Unknown';
-
+                    const a = f.attributes, count = a.Call_Count_By_Origin || 0;
                     total += count;
-                    if(cat === 'Emergency') emergency += count;
-                    else nonEmergency += count;
-
-                    months[month] = (months[month] || 0) + count;
-                    providers[provider] = (providers[provider] || 0) + count;
-
-                    if(!monthlyBreakdown[month]) monthlyBreakdown[month] = { emergency: 0, nonEmergency: 0, total: 0 };
-                    monthlyBreakdown[month].total += count;
-                    if(cat === 'Emergency') monthlyBreakdown[month].emergency += count;
-                    else monthlyBreakdown[month].nonEmergency += count;
+                    if (a.Call_Category === 'Emergency') emergency += count;
+                    months[a.Month] = (months[a.Month] || 0) + count;
+                    providers[a.Phone_Service_Provider_Type || 'Unknown'] = (providers[a.Phone_Service_Provider_Type || 'Unknown'] || 0) + count;
+                    if (!monthlyBreakdown[a.Month]) monthlyBreakdown[a.Month] = { emergency: 0, nonEmergency: 0, total: 0 };
+                    monthlyBreakdown[a.Month].total += count;
+                    if (a.Call_Category === 'Emergency') monthlyBreakdown[a.Month].emergency += count;
+                    else monthlyBreakdown[a.Month].nonEmergency += count;
                 });
-
                 const busiestKey = Object.keys(months).reduce((a, b) => months[a] > months[b] ? a : b);
-                const busiestMonthName = busiestKey.split(' - ')[1] || busiestKey;
-                
-                // Set Global Summary Data for AI
-                summaryData = {
-                    totalCalls: total,
-                    emergencyCalls: emergency,
-                    nonEmergencyCalls: nonEmergency,
-                    emergencyPercentage: ((emergency/total)*100).toFixed(1) + '%',
-                    busiestMonth: busiestMonthName,
-                    providerBreakdown: providers,
-                    monthlyTrends: monthlyBreakdown
-                };
+                const busiestMonth = busiestKey.split(' - ')[1] || busiestKey;
 
-                // Update UI Stats
-                document.getElementById('stat-total').innerText = total.toLocaleString();
-                document.getElementById('stat-percent').innerText = summaryData.emergencyPercentage;
-                document.getElementById('stat-month').innerText = busiestMonthName;
-                document.getElementById('last-updated').innerText = 'Last Updated: ' + new Date().toLocaleDateString();
-
-                // Bar Chart Data (2025)
-                const f2025 = features.filter(f => f.attributes.Year === 2025);
-                const eMap = {}, nMap = {};
-                f2025.forEach(f => {
-                    const a = f.attributes;
-                    const count = a.Call_Count_By_Origin || 0;
-                    if(a.Call_Category === 'Emergency') eMap[a.Month] = (eMap[a.Month] || 0) + count;
-                    else nMap[a.Month] = (nMap[a.Month] || 0) + count;
-                });
-
-                const sortedMonthKeys = Array.from(new Set([...Object.keys(eMap), ...Object.keys(nMap)])).sort();
-                const displayLabels = sortedMonthKeys.map(k => k.split(' - ')[1] || k);
-
-                new Chart(document.getElementById('barChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: displayLabels,
-                        datasets: [
-                            { label: 'Emergency', data: sortedMonthKeys.map(k => eMap[k] || 0), backgroundColor: '#3b82f6', borderRadius: 4 },
-                            { label: 'Non-Emergency', data: sortedMonthKeys.map(k => nMap[k] || 0), backgroundColor: '#ef4444', borderRadius: 4 }
-                        ]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                // Response time stats
+                let respTotal = 0, respCount = 0, districtStats = {};
+                let catStats = { Fire: {total:0,count:0}, Medical: {total:0,count:0}, Other: {total:0,count:0} };
+                allIncidents.forEach(f => {
+                    const p = f.properties, rt = p.Unit_Response_Time;
+                    if (rt == null || isNaN(rt)) return;
+                    const typeLow = (p.Incident_Type || '').toLowerCase();
+                    const cat = typeLow.includes('fire') ? 'Fire' : (typeLow.includes('medical')||typeLow.includes('ems') ? 'Medical' : 'Other');
+                    respTotal += rt; respCount++;
+                    catStats[cat].total += rt; catStats[cat].count++;
+                    if (p.District) {
+                        if (!districtStats[p.District]) districtStats[p.District] = {total:0,count:0};
+                        districtStats[p.District].total += rt; districtStats[p.District].count++;
                     }
                 });
 
-                // Pie Chart Data
-                new Chart(document.getElementById('pieChart'), {
-                    type: 'pie',
-                    data: {
-                        labels: Object.keys(providers),
-                        datasets: [{ data: Object.values(providers), backgroundColor: ['#1e293b', '#3b82f6', '#10b981', '#f59e0b', '#64748b'] }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
+                const avgResp = respCount > 0 ? respTotal / respCount : 0;
+                let fastestDist = "N/A", slowestDist = "N/A", minAvg = Infinity, maxAvg = -Infinity;
+                Object.keys(districtStats).forEach(d => {
+                    const avg = districtStats[d].total / districtStats[d].count;
+                    if (avg < minAvg) { minAvg = avg; fastestDist = d; }
+                    if (avg > maxAvg) { maxAvg = avg; slowestDist = d; }
                 });
 
-                // Initialize Map
-                allIncidents = incData.features;
-                map = L.map('incident-map').setView([32.3668, -86.3000], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-                
-                markerLayer = L.layerGroup().addTo(map);
+                const topProvider = Object.keys(providers).reduce((a,b) => providers[a]>providers[b]?a:b);
+                const topPct = Math.round((providers[topProvider]/total)*100);
 
-                const legend = L.control({position: 'bottomright'});
-                legend.onAdd = () => {
-                    const div = L.DomUtil.create('div', 'bg-white p-3 rounded-xl shadow-lg border border-slate-200 text-[10px] font-bold space-y-1');
-                    div.innerHTML = `
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> FIRE</div>
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> MEDICAL</div>
-                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span> OTHER</div>
-                    `;
-                    return div;
+                summaryData = {
+                    totalCalls: total, emergencyCalls: emergency,
+                    emergencyPercentage: ((emergency/total)*100).toFixed(1)+'%',
+                    busiestMonth, providerBreakdown: providers, topProvider, topPct,
+                    monthlyTrends: monthlyBreakdown,
+                    responseTimes: {
+                        avgResponseTimeSeconds: Math.round(avgResp),
+                        fastestDistrict: fastestDist, fastestSeconds: Math.round(minAvg),
+                        slowestDistrict: slowestDist, slowestSeconds: Math.round(maxAvg),
+                        byCategory: {
+                            fire: catStats.Fire.count>0 ? Math.round(catStats.Fire.total/catStats.Fire.count) : 0,
+                            medical: catStats.Medical.count>0 ? Math.round(catStats.Medical.total/catStats.Medical.count) : 0,
+                            other: catStats.Other.count>0 ? Math.round(catStats.Other.total/catStats.Other.count) : 0
+                        }
+                    },
+                    definitions: {
+                        emergency: "Immediate threat to life or property (Fire, Medical, Crime in progress). Call 911.",
+                        nonEmergency: "Barking dogs, noise complaints, minor accidents, crimes not in progress. Call 334-625-2651.",
+                        otherIncidents: "Vehicle accidents, hazmat spills, utility emergencies, water rescues, false alarms."
+                    }
                 };
-                legend.addTo(map);
 
-                filterMap('All');
+                // Update UI
+                document.getElementById('stat-total').innerText = total.toLocaleString();
+                document.getElementById('stat-percent').innerText = summaryData.emergencyPercentage;
+                document.getElementById('stat-month').innerText = busiestMonth;
+                document.getElementById('stat-response').innerText = avgResp > 0 ? fmtTime(avgResp) : 'N/A';
+                document.getElementById('last-updated').innerText = 'Last Updated: ' + new Date().toLocaleDateString();
+
+                // Data story
+                const fasterPct = minAvg > 0 ? Math.round(((avgResp - minAvg) / avgResp) * 100) : 0;
+                document.getElementById('data-story').innerHTML =
+                    `Montgomery receives <strong>${total.toLocaleString()} calls annually</strong> — ${summaryData.emergencyPercentage} are true emergencies requiring immediate response. 
+                     Average fire crew response time is <strong>${fmtTime(avgResp)}</strong>, but District ${fastestDist} responds ${fasterPct}% faster than average. 
+                     <strong>${busiestMonth}</strong> is the peak month · ${topProvider} phones account for the majority of 911 calls.`;
+
+                renderInsights(total, emergency, avgResp, minAvg, fastestDist, busiestMonth, topProvider, topPct, catStats);
+                renderCharts(features, providers);
+                renderDistrictChart(districtStats);
+                renderCategoryChart(catStats);
+                initMap();
 
                 document.getElementById('loader').style.display = 'none';
                 lucide.createIcons();
-            } catch (e) {
-                console.error("Init error:", e);
+            } catch(e) {
+                console.error(e);
                 document.getElementById('loader').style.display = 'none';
-                const main = document.querySelector('main');
-                const banner = document.createElement('div');
-                banner.className = 'bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl';
-                banner.innerText = '⚠️ Some data failed to load: ' + e.message + '. Charts may show partial data.';
-                main.prepend(banner);
-             }
-        }
-
-        function filterMap(type) {
-            markerLayer.clearLayers();
-            let fCount = 0, mCount = 0, tCount = 0;
-
-            allIncidents.forEach(i => {
-                if (!i.geometry || !i.geometry.coordinates) return;
-                if (!i.properties || !i.properties.Incident_Type) return;
-    
-                const p = i.properties;
-                const isFire = p.Incident_Type.toLowerCase().includes('fire');
-                const isMed = p.Incident_Type.toLowerCase().includes('medical') || p.Incident_Type.toLowerCase().includes('ems');
-                const iType = isFire ? 'Fire' : (isMed ? 'Medical' : 'Other');
-                const color = isFire ? '#ef4444' : (isMed ? '#3b82f6' : '#f97316');
-
-                if(isFire) fCount++;
-                if(isMed) mCount++;
-                tCount++;
-
-                if(type === 'All' || type === iType) {
-                    const [lng, lat] = i.geometry.coordinates;
-                    L.circleMarker([lat, lng], {
-                        radius: 8,
-                        fillColor: color,
-                        color: '#fff',
-                        weight: 2,
-                        fillOpacity: 0.8
-                    }).bindPopup(`
-                        <div class="p-2">
-                            <b class="text-navy-900">${p.Incident_Type}</b><br>
-                            <small>District: ${p.District}<br>Address: ${p.Street_Address}<br>Shift: ${p.Shift}</small>
-                        </div>
-                    `).addTo(markerLayer);
-                }
-            });
-
-            document.getElementById('fire-count').innerText = fCount;
-            document.getElementById('med-count').innerText = mCount;
-            document.getElementById('total-incidents').innerText = tCount;
-
-            // Update button styles
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                  b.classList.remove('bg-slate-900', 'text-white');
-                  b.classList.add('bg-slate-100', 'text-slate-600');
-            });
-           const activeBtn = document.getElementById('btn-' + type);
-           activeBtn.classList.remove('bg-slate-100', 'text-slate-600');
-           activeBtn.classList.add('bg-slate-900', 'text-white');
-        }
-
-        // Chat Logic
-        const chatContainer = document.getElementById('chat-container');
-        const chatInput = document.getElementById('chat-input');
-
-        function addMessage(text, isUser = false) {
-            const bubble = document.createElement('div');
-            bubble.className = isUser ? 'chat-bubble-user p-4 max-w-[85%] self-end' : 'chat-bubble-ai p-4 max-w-[85%] self-start';
-            bubble.innerText = text;
-            chatContainer.appendChild(bubble);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return bubble;
-        }
-
-        function askExample(btn) {
-            chatInput.value = btn.innerText;
-            handleAsk();
-        }
-
-        async function handleAsk() {
-            const userQuestion = chatInput.value.trim();
-            if (!userQuestion) return;
-
-            addMessage(userQuestion, true);
-            chatInput.value = '';
-            
-            const thinkingBubble = addMessage("SafetyPulse is thinking...");
-            
-            try {
-                 const response = await fetch(
-                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
-                 { 
-                     method: "POST",
-                     headers: { "Content-Type": "application/json" },
-                     body: JSON.stringify({ 
-                     contents: [{
-                         role: "user",
-                         parts: [{ 
-                              text: `You are a public safety data analyst for Montgomery, Alabama.
-                              Answer questions using ONLY this 911 call data: ${JSON.stringify(summaryData)}.
-                              Keep answers under 3 sentences. Be specific with numbers.
-                              User question: ${userQuestion}` 
-                          }]
-                      }]
-                   })
-                 }
-              );
-
-              const result = await response.json();
- 
-              if (result.candidates && result.candidates[0]) {
-                 const aiText = result.candidates[0].content.parts[0].text;
-                 thinkingBubble.innerText = aiText;
-              } else if (result.error) {
-                  if (result.error.code === 429) {
-                      thinkingBubble.innerText = "⚠️ API quota limit reached for this session. This is a free-tier Gemini API limitation — the AI chatbot works correctly but the daily request limit has been reached. Please try again tomorrow, or the project owner can upgrade to a paid API key for unlimited access. All other dashboard features (charts, stats) continue to work normally.";
-                  } else if (result.error.code === 403) {
-                      thinkingBubble.innerText = "⚠️ API key authorization error (code 403). If you are running this locally, please replace the Gemini API key in the source code with your own free key from aistudio.google.com.";
-                  } else if (result.error.code === 404) {
-                      thinkingBubble.innerText = "⚠️ AI model not found (code 404). Please check that the Gemini model name in the source code is valid for your API key.";
-                  } else {
-                      thinkingBubble.innerText = "⚠️ API Error " + result.error.code + ": " + result.error.message;
-                  }
-              } else {
-                  thinkingBubble.innerText = "⚠️ Unexpected response from AI. Please try again.";
-              }
-
-            } catch (error) {
-                 console.error("Full error:", error);
-                 thinkingBubble.innerText = "⚠️ Network error: Could not reach the Gemini API. Please check your internet connection and try again.";
+                const b = document.createElement('div');
+                b.className = 'bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl text-sm';
+                b.innerText = '⚠️ Data load error: ' + e.message;
+                document.querySelector('main').prepend(b);
             }
         }
 
-        // Enter key to send
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleAsk();
-        });
+        function renderInsights(total, emergency, avgResp, minAvg, fastestDist, busiestMonth, topProvider, topPct, catStats) {
+            const fasterPct = minAvg > 0 ? Math.round(((avgResp - minAvg) / avgResp) * 100) : 0;
+            const emergPct = ((emergency/total)*100).toFixed(1);
+            const fireAvg = catStats.Fire.count>0 ? catStats.Fire.total/catStats.Fire.count : 0;
+            const medAvg = catStats.Medical.count>0 ? catStats.Medical.total/catStats.Medical.count : 0;
+            const fasterCat = fireAvg > 0 && medAvg > 0 ? (fireAvg < medAvg ? 'Fire' : 'Medical') : 'Fire';
+            const fasterCatTime = Math.min(fireAvg||999, medAvg||999);
 
+            const insights = [
+                { icon:'⚡', color:'bg-blue-50 border-blue-200', title:'Fastest District',
+                  text:`District ${fastestDist} responds ${fasterPct}% faster than the city average of ${fmtTime(avgResp)}.` },
+                { icon:'🚨', color:'bg-red-50 border-red-200', title:'Emergency Rate',
+                  text:`${emergPct}% of all calls are true emergencies — nearly 1 in 2 calls requires immediate response.` },
+                { icon:'📅', color:'bg-amber-50 border-amber-200', title:'Peak Month',
+                  text:`${busiestMonth} is Montgomery's busiest month. Expect higher demand on emergency services.` },
+                { icon:'🚒', color:'bg-emerald-50 border-emerald-200', title:'Fastest Incident Type',
+                  text:`${fasterCat} incidents get the fastest response at ${fmtTime(fasterCatTime)} on average city-wide.` }
+            ];
+
+            document.getElementById('insights-strip').innerHTML = insights.map(i => `
+                <div class="insight-card ${i.color} border rounded-2xl p-4 space-y-2">
+                    <div class="text-2xl">${i.icon}</div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">${i.title}</p>
+                    <p class="text-sm text-slate-700 leading-snug">${i.text}</p>
+                </div>`).join('');
+        }
+
+        function renderCharts(features, providers) {
+            const f2025 = features.filter(f => f.attributes.Year === 2025);
+            const eMap = {}, nMap = {};
+            f2025.forEach(f => {
+                const a = f.attributes, count = a.Call_Count_By_Origin || 0;
+                if (a.Call_Category === 'Emergency') eMap[a.Month] = (eMap[a.Month]||0) + count;
+                else nMap[a.Month] = (nMap[a.Month]||0) + count;
+            });
+            const keys = Array.from(new Set([...Object.keys(eMap),...Object.keys(nMap)])).sort();
+            new Chart(document.getElementById('barChart'), {
+                type:'bar',
+                data:{ labels: keys.map(k=>k.split(' - ')[1]||k),
+                    datasets:[
+                        {label:'Emergency', data:keys.map(k=>eMap[k]||0), backgroundColor:'#3b82f6', borderRadius:4},
+                        {label:'Non-Emergency', data:keys.map(k=>nMap[k]||0), backgroundColor:'#ef4444', borderRadius:4}
+                    ]},
+                options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+            });
+            new Chart(document.getElementById('pieChart'), {
+                type:'pie',
+                data:{labels:Object.keys(providers),datasets:[{data:Object.values(providers),backgroundColor:['#1e293b','#3b82f6','#10b981','#f59e0b','#64748b']}]},
+                options:{responsive:true,maintainAspectRatio:false}
+            });
+        }
+
+        function renderDistrictChart(districtStats) {
+            if (!Object.keys(districtStats).length) return;
+            const sorted = Object.keys(districtStats).map(d=>({name:d,avg:districtStats[d].total/districtStats[d].count})).sort((a,b)=>a.avg-b.avg);
+            const n = sorted.length;
+            const colors = sorted.map((_,i) => {
+                const r = i/(n-1);
+                return `rgb(${Math.floor(16+(239-16)*r)},${Math.floor(185+(68-185)*r)},${Math.floor(129+(68-129)*r)})`;
+            });
+            new Chart(document.getElementById('districtChart'), {
+                type:'bar',
+                data:{labels:sorted.map(d=>'District '+d.name),datasets:[{label:'Avg Response (sec)',data:sorted.map(d=>Math.round(d.avg)),backgroundColor:colors,borderRadius:6}]},
+                options:{
+                    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+                    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Math.round(ctx.raw)}s (${fmtTime(ctx.raw)})`}}},
+                    scales:{x:{title:{display:true,text:'Seconds',font:{weight:'bold'}},beginAtZero:true},y:{ticks:{font:{size:10}}}}
+                }
+            });
+        }
+
+        function renderCategoryChart(catStats) {
+            const cats = ['Fire','Medical','Other'];
+            const data = cats.map(c => catStats[c].count>0 ? Math.round(catStats[c].total/catStats[c].count) : 0);
+            const counts = cats.map(c => catStats[c].count);
+            const colors = ['#ef4444','#3b82f6','#f97316'];
+            new Chart(document.getElementById('categoryChart'), {
+                type:'bar',
+                data:{
+                    labels:cats.map((c,i)=>`${c}\n(${counts[i]} incidents)`),
+                    datasets:[{label:'Avg Response (sec)',data,backgroundColor:colors,borderRadius:8,barThickness:60}]
+                },
+                options:{
+                    responsive:true,maintainAspectRatio:false,
+                    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${Math.round(ctx.raw)}s — ${fmtTime(ctx.raw)}`}}},
+                    scales:{y:{beginAtZero:true,title:{display:true,text:'Seconds',font:{weight:'bold'}},ticks:{callback:v=>fmtTime(v)}}}
+                }
+            });
+        }
+
+        function initMap() {
+            map = L.map('incident-map').setView([32.3668,-86.3000],12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+            Object.values(layers).forEach(l=>l.addTo(map));
+            filterMap('All');
+            populateStaticLayers();
+            const legend = L.control({position:'bottomright'});
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div');
+                div.style.cssText = 'background:white;padding:10px 14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.15);font-size:11px;font-weight:600;line-height:2;min-width:170px';
+                div.innerHTML = '<div>🔴 Fire Incident</div><div>🔵 Medical Incident</div><div>🟠 Other Incident</div><div>🟢 Fire Station</div><div>🟣 Tornado Shelter</div><div>🟡 311 Issue</div>';
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        function populateStaticLayers() {
+            fireStations.forEach(s => {
+                const pos = safeCoords(s); if (!pos) return;
+                L.circleMarker(pos,{radius:9,fillColor:'#10b981',color:'#fff',weight:2,fillOpacity:0.95})
+                    .bindPopup(`<b>🚒 Fire Station</b><br>${s.properties.Name||s.properties.STATION_NAME||'Fire Station'}`).addTo(layers.stations);
+            });
+            tornadoShelters.forEach(s => {
+                const pos = safeCoords(s); if (!pos) return;
+                L.circleMarker(pos,{radius:9,fillColor:'#a855f7',color:'#fff',weight:2,fillOpacity:0.95})
+                    .bindPopup(`<b>⛺ Tornado Shelter</b><br>${s.properties.Location||s.properties.NAME||'Shelter'}`).addTo(layers.shelters);
+            });
+            threeOneOneIssues.forEach(s => {
+                const pos = safeCoords(s); if (!pos) return;
+                L.circleMarker(pos,{radius:5,fillColor:'#eab308',color:'#fff',weight:1,fillOpacity:0.85})
+                    .bindPopup(`<b>⚠️ 311 Issue</b><br>${s.properties.Request_Type||'Service Request'}`).addTo(layers.issues);
+            });
+            map.removeLayer(layers.stations);
+            map.removeLayer(layers.shelters);
+            map.removeLayer(layers.issues);
+        }
+
+        function toggleLayer(key) {
+            const btn = document.getElementById('toggle-'+key);
+            if (map.hasLayer(layers[key])) {
+                map.removeLayer(layers[key]); btn.classList.remove('active');
+                if (key==='incidents') document.getElementById('incident-filters').classList.add('hidden');
+            } else {
+                map.addLayer(layers[key]); btn.classList.add('active');
+                if (key==='incidents') document.getElementById('incident-filters').classList.remove('hidden');
+            }
+        }
+
+        function filterMap(type) {
+            layers.incidents.clearLayers();
+            allIncidents.forEach(i => {
+                const pos = safeCoords(i); if (!pos) return;
+                const p = i.properties;
+                const typeLow = (p.Incident_Type||'').toLowerCase();
+                const isFire = typeLow.includes('fire');
+                const isMed = typeLow.includes('medical')||typeLow.includes('ems');
+                const iType = isFire?'Fire':(isMed?'Medical':'Other');
+                const color = isFire?'#ef4444':(isMed?'#3b82f6':'#f97316');
+                if (type==='All'||type===iType) {
+                    L.circleMarker(pos,{radius:7,fillColor:color,color:'#fff',weight:2,fillOpacity:0.8})
+                        .bindPopup(`<b>${p.Incident_Type||'Incident'}</b><br><small>District: ${p.District||'N/A'}<br>${p.Street_Address||p.Location_Street_Address||''}</small>`)
+                        .addTo(layers.incidents);
+                }
+            });
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('bg-slate-900','text-white');
+                b.classList.add('bg-slate-50','text-slate-600');
+            });
+            const ab = document.getElementById('btn-'+type);
+            if (ab) { ab.classList.replace('bg-slate-50','bg-slate-900'); ab.classList.replace('text-slate-600','text-white'); }
+        }
+
+        const chatContainer = document.getElementById('chat-container');
+        const chatInput = document.getElementById('chat-input');
+
+        function addMessage(text, isUser=false) {
+            const b = document.createElement('div');
+            b.className = isUser?'chat-bubble-user p-4 max-w-[85%] self-end':'chat-bubble-ai p-4 max-w-[85%] self-start';
+            b.innerText = text;
+            chatContainer.appendChild(b);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return b;
+        }
+
+        function askExample(btn) { chatInput.value = btn.innerText; handleAsk(); }
+
+        async function handleAsk() {
+            const q = chatInput.value.trim(); if (!q) return;
+            addMessage(q, true); chatInput.value = '';
+            const thinking = addMessage("SafetyPulse is thinking...");
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,{
+                    method:"POST", headers:{"Content-Type":"application/json"},
+                    body: JSON.stringify({contents:[{role:"user",parts:[{text:
+                        `You are SafetyPulse AI, a public safety assistant for residents of Montgomery, Alabama.
+Real data: ${JSON.stringify(summaryData)}
+Facts:
+- Emergency 911: fires, medical emergencies, crimes in progress, life-threatening situations, shootings, injury crashes
+- Non-emergency (334-625-2651): abandoned vehicles, parking complaints, loud parties, barking dogs, vandalism, late-reported crimes
+- "Other Incidents" on the map: vehicle accidents, hazmat, utility emergencies, water rescues, false alarms
+- Accidental 911 call: STAY ON THE LINE and explain the mistake
+Tone: helpful, friendly, for RESIDENTS. Be specific with numbers. Max 4 sentences.
+If emergency topic: remind to call 911. If non-emergency: give 334-625-2651.
+Question: ${q}`}]}]})
+                });
+                const result = await res.json();
+                if (result.candidates?.[0]) thinking.innerText = result.candidates[0].content.parts[0].text;
+                else if (result.error?.code===429) thinking.innerText = "⚠️ API quota reached. Please wait a moment and try again.";
+                else if (result.error?.code===403) thinking.innerText = "⚠️ API key invalid. Please check your Gemini API key.";
+                else thinking.innerText = "⚠️ " + (result.error?.message || "Unexpected response. Please try again.");
+            } catch(e) { thinking.innerText = "⚠️ Network error: Could not reach the Gemini API."; }
+        }
+
+        chatInput.addEventListener('keypress', e => { if (e.key==='Enter') handleAsk(); });
         init();
     </script>
 </body>

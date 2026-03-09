@@ -182,6 +182,46 @@
             </div>
         </div>
 
+        <!-- Bright Data Live News Panel -->
+        <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="navy-bg p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-yellow-500/20 rounded-lg">
+                        <i data-lucide="newspaper" class="w-6 h-6 text-yellow-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">Live Safety News</h2>
+                        <p class="text-slate-400 text-sm">Real-time Montgomery public safety headlines</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Bright_Data_Logo.svg/320px-Bright_Data_Logo.svg.png" alt="Bright Data" class="h-6 opacity-80" onerror="this.style.display='none'">
+                    <span class="text-xs font-bold px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded uppercase tracking-wider">Powered by Bright Data</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <p class="text-sm text-slate-500">Latest public safety news scraped live from Google News via Bright Data SERP API</p>
+                    <button onclick="fetchSafetyNews()" id="news-refresh-btn" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-yellow-50 text-slate-700 hover:text-yellow-700 rounded-xl text-sm font-medium transition-all border border-slate-200 hover:border-yellow-200">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>Refresh News</span>
+                    </button>
+                </div>
+                <div id="news-container" class="space-y-3">
+                    <div class="flex items-center justify-center py-8 text-slate-400">
+                        <div class="text-center">
+                            <i data-lucide="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+                            <p class="text-sm">Fetching live news...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <p class="text-xs text-slate-400">News data scraped in real-time · Montgomery, Alabama public safety</p>
+                    <p id="news-timestamp" class="text-xs text-slate-400"></p>
+                </div>
+            </div>
+        </section>
+
         <!-- AI Chat Section -->
         <section class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="navy-bg p-6 text-white flex items-center justify-between">
@@ -196,18 +236,18 @@
             <div class="p-6 space-y-6">
                 <div id="chat-container" class="h-80 overflow-y-auto space-y-4 pr-2 custom-scrollbar flex flex-col">
                     <div class="chat-bubble-ai p-4 max-w-[85%] self-start">
-                        Hello! I'm SafetyPulse AI. I can analyze Montgomery's public safety data, response times, and map layers for you. What would you like to know?
+                        Hi! I'm SafetyPulse AI — your Montgomery public safety assistant. Ask me anything like "Should I call 911 or the non-emergency line?", "Which area has the fastest response times?", or "What's the safest time to be out?" I'm here to help! 🚨
                     </div>
                 </div>
                 <div class="space-y-3">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Quick Queries</p>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which month had the most emergency calls?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">How fast does help arrive in Montgomery?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which district has the fastest emergency response?</button>
                         <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Should I call 911 or the non-emergency line for a barking dog?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What are the most common types of fire incidents?</button>
-                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Is call volume increasing or decreasing in 2025?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What's the safest time to be out?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which area has the fastest emergency response?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">How quickly does help arrive in Montgomery?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">Which district has the lowest emergency cases?</button>
+                        <button onclick="askExample(this)" class="px-4 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all border border-slate-200 hover:border-blue-200">What are the most common fire incidents in Montgomery?</button>
                     </div>
                 </div>
                 <div class="flex gap-3">
@@ -438,11 +478,42 @@
                     districtIncidentCounts[dist].total++;
                 });
 
+                // Build per-year summary for chatbot
+                const yearlyBreakdown = {};
+                const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                features.forEach(f => {
+                    const a = f.attributes;
+                    const yr = a.Year || 'Unknown';
+                    const count = a.Call_Count_By_Origin || 0;
+                    if (!yearlyBreakdown[yr]) yearlyBreakdown[yr] = { total: 0, emergency: 0, nonEmergency: 0, monthlyTotals: {} };
+                    yearlyBreakdown[yr].total += count;
+                    if (a.Call_Category === 'Emergency') yearlyBreakdown[yr].emergency += count;
+                    else yearlyBreakdown[yr].nonEmergency += count;
+                    // Track monthly totals per year
+                    const mIdx = extractMonthIndex(a.Month);
+                    if (mIdx !== -1) {
+                        const mName = MONTH_NAMES_FULL[mIdx];
+                        yearlyBreakdown[yr].monthlyTotals[mName] = (yearlyBreakdown[yr].monthlyTotals[mName] || 0) + count;
+                    }
+                });
+                // Add emergency % and busiest month per year
+                Object.keys(yearlyBreakdown).forEach(yr => {
+                    const y = yearlyBreakdown[yr];
+                    y.emergencyPct = y.total > 0 ? ((y.emergency/y.total)*100).toFixed(1)+'%' : '0%';
+                    const months = y.monthlyTotals;
+                    const busiest = Object.keys(months).sort((a,b) => months[b]-months[a])[0] || 'N/A';
+                    const quietest = Object.keys(months).sort((a,b) => months[a]-months[b])[0] || 'N/A';
+                    y.busiestMonth = busiest;
+                    y.quietestMonth = quietest;
+                    y.monthsRecorded = Object.keys(months).length;
+                });
+
                 summaryData = {
                     totalCalls: total, emergencyCalls: emergency,
                     emergencyPercentage: ((emergency/total)*100).toFixed(1)+'%',
                     busiestMonth, providerBreakdown: providers, topProvider, topPct,
                     monthlyTrends: monthlyBreakdown,
+                    yearlyBreakdown: yearlyBreakdown,
                     districtCallCounts: districtCounts,
                     districtIncidentCounts: districtIncidentCounts,
                     responseTimes: {
@@ -752,7 +823,7 @@
             allFeatures = features;
 
             // Populate year dropdown from available data
-            const years = [...new Set(features.map(f => f.attributes.Year).filter(Boolean))].sort((a,b) => b-a);
+            const years = [...new Set(features.map(f => f.attributes.Year).filter(Boolean))].sort((a,b) => a-b);
             const select = document.getElementById('year-filter');
             years.forEach(y => {
                 const opt = document.createElement('option');
@@ -939,11 +1010,38 @@
             addMessage(q, true); chatInput.value = '';
             const thinking = addMessage("SafetyPulse is thinking...");
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,{
+                // Build dynamic data context for chatbot
+            const yb = summaryData.yearlyBreakdown || {};
+            const currentYear = new Date().getFullYear();
+            const contextLines = [];
+            Object.keys(yb).filter(y => !isNaN(y)).sort().forEach(yr => {
+                const y = yb[yr];
+                const isCurrent = parseInt(yr) === currentYear;
+                const estMonths = isCurrent ? (new Date().getMonth() || 1) : 12;
+                const monthlyAvg = Math.round(y.total / estMonths);
+                if (isCurrent) {
+                    contextLines.push('- ' + yr + ' data is PARTIAL (' + estMonths + ' months so far) — ' + y.total.toLocaleString() + ' calls, ~' + monthlyAvg.toLocaleString() + '/month pace. Do NOT compare raw ' + yr + ' totals to prior full years.');
+                } else {
+                    contextLines.push('- ' + yr + ' is a FULL year — ' + y.total.toLocaleString() + ' calls, avg ~' + monthlyAvg.toLocaleString() + '/month.');
+                }
+            });
+            if (yb[currentYear-1] && yb[currentYear]) {
+                const prevAvg = Math.round(yb[currentYear-1].total / 12);
+                const currMonths = new Date().getMonth() || 1;
+                const currAvg = Math.round(yb[currentYear].total / currMonths);
+                const trend = currAvg > prevAvg ? 'above' : 'below';
+                contextLines.push('- ' + currentYear + ' is tracking ' + trend + ' ' + (currentYear-1) + ' monthly pace (' + currAvg.toLocaleString() + ' vs ' + prevAvg.toLocaleString() + ' calls/month).');
+            }
+            contextLines.push('- Fire/rescue incident data for ' + currentYear + ' is not yet published by the city.');
+            const dataContext = contextLines.join('\n');
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,{
                     method:"POST", headers:{"Content-Type":"application/json"},
                     body: JSON.stringify({contents:[{role:"user",parts:[{text:
                         `You are SafetyPulse AI, a public safety assistant for residents of Montgomery, Alabama.
 Real data: ${JSON.stringify(summaryData)}
+IMPORTANT data context:
+${dataContext}
 Facts:
 - Emergency 911: fires, medical emergencies, crimes in progress, life-threatening situations, shootings, injury crashes
 - Non-emergency (334-625-2651): abandoned vehicles, parking complaints, loud parties, barking dogs, vandalism, late-reported crimes
@@ -961,8 +1059,104 @@ Question: ${q}`}]}]})
             } catch(e) { thinking.innerText = "⚠️ Network error: Could not reach the Gemini API."; }
         }
 
+
+        // ── Bright Data News ──────────────────────────────────────────────
+        const BRIGHT_DATA_KEY = "588b8359-0efd-45be-a247-f2ac14b9dd38";
+
+        async function fetchSafetyNews() {
+            const container = document.getElementById('news-container');
+            const btn = document.getElementById('news-refresh-btn');
+            container.innerHTML = `<div class="flex items-center justify-center py-8 text-slate-400"><div class="text-center"><p class="text-sm animate-pulse">⏳ Fetching live news from Bright Data...</p></div></div>`;
+            if (btn) btn.disabled = true;
+
+            const queries = [
+                'Montgomery Alabama public safety news',
+                'Montgomery Alabama fire rescue emergency news',
+                'Montgomery AL police fire department latest news'
+            ];
+            const query = queries[Math.floor(Math.random() * queries.length)];
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&gl=us&hl=en`;
+
+            try {
+                const res = await fetch('https://api.brightdata.com/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${BRIGHT_DATA_KEY}`
+                    },
+                    body: JSON.stringify({
+                        zone: 'safetypulse_news',
+                        url: searchUrl,
+                        format: 'json'
+                    })
+                });
+
+                if (!res.ok) throw new Error(`Bright Data error: ${res.status}`);
+                const data = await res.json();
+                console.log('Bright Data status:', data.status_code);
+
+                // Body is a JSON string inside data.body
+                let results = [];
+                if (data.body) {
+                    try {
+                        const parsed = JSON.parse(data.body);
+                        console.log('Parsed body keys:', Object.keys(parsed));
+                        console.log('organic count:', (parsed.organic||[]).length, 'news count:', (parsed.news||[]).length);
+                        results = (parsed.organic && parsed.organic.length > 0) ? parsed.organic
+                            : (parsed.news && parsed.news.length > 0) ? parsed.news
+                            : parsed.results || parsed.items || parsed.search_results || [];
+                    } catch(parseErr) {
+                        // body might be HTML — extract headlines from it
+                        console.log('Body is not JSON, trying HTML parse');
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data.body, 'text/html');
+                        const anchors = [...doc.querySelectorAll('a[href*="http"]')].filter(a => a.innerText.length > 30);
+                        results = anchors.slice(0, 5).map(a => ({
+                            title: a.innerText.trim(),
+                            url: a.href,
+                            source: new URL(a.href).hostname.replace('www.','')
+                        }));
+                    }
+                }
+
+                if (results.length === 0) throw new Error('No news results found in response');
+
+                const top5 = results.slice(0, 5);
+                container.innerHTML = top5.map((item, i) => `
+                    <a href="${item.url || item.link || '#'}" target="_blank" rel="noopener"
+                       class="flex items-start gap-4 p-4 rounded-2xl border border-slate-100 hover:border-yellow-200 hover:bg-yellow-50 transition-all group cursor-pointer block">
+                        <div class="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-xl flex items-center justify-center text-sm font-bold text-yellow-700 group-hover:bg-yellow-200 transition-all">${i+1}</div>
+                        <div class="flex-grow min-w-0">
+                            <p class="font-semibold text-slate-800 group-hover:text-yellow-800 transition-colors leading-snug">${item.title || item.heading || 'News Article'}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs text-slate-400">${item.source || item.displayed_link || item.domain || item.cite?.domain || ''}</span>
+                                ${(item.date||item.snippet_highlighted_words) ? `<span class="text-xs text-slate-300">·</span><span class="text-xs text-slate-400">${item.date||''}</span>` : ''}
+                            </div>
+                            ${item.description || item.snippet ? `<p class="text-sm text-slate-500 mt-1 line-clamp-2">${item.description || item.snippet}</p>` : ''}
+                        </div>
+                        <i data-lucide="external-link" class="w-4 h-4 text-slate-300 group-hover:text-yellow-500 flex-shrink-0 mt-1 transition-colors"></i>
+                    </a>
+                `).join('');
+
+                document.getElementById('news-timestamp').innerText = 'Last fetched: ' + new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: true});
+                lucide.createIcons();
+
+            } catch(e) {
+                console.error('Bright Data error:', e);
+                container.innerHTML = `
+                    <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                        <p class="text-amber-800 font-medium text-sm">⚠️ Could not fetch live news right now.</p>
+                        <p class="text-amber-600 text-xs mt-1">Error: ${e.message}. Try refreshing in a moment.</p>
+                    </div>`;
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // Auto-fetch news on load
         chatInput.addEventListener('keypress', e => { if (e.key==='Enter') handleAsk(); });
-        init();
+        // Load news AFTER main dashboard — 4s delay so dashboard renders first
+        init().then(() => setTimeout(fetchSafetyNews, 4000)).catch(() => setTimeout(fetchSafetyNews, 4000));
     </script>
 </body>
 </html>
